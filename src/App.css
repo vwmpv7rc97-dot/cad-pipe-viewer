@@ -42,6 +42,12 @@ input[type="file"]::file-selector-button:hover { background: #0F6E56; }
 .step-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
 .step-btn:hover:not(.active) { background: #21262d; }
 
+/* 格式标签 */
+.fmt-tag {
+  font-size: 11px; padding: 3px 8px; border-radius: 4px;
+  background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+}
+
 /* 上传区 */
 .upload-box {
   border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
@@ -98,4 +104,51 @@ input[type="file"]::file-selector-button:hover { background: #0F6E56; }
   padding: 8px 12px; pointer-events: none; font-size: 11px;
   color: #c9d1d9; min-width: 140px; transition: opacity 0.15s;
   z-index: 50;
+}
+
+/* ============================================================
+   响应式：平板和手机
+   ============================================================ */
+@media (max-width: 1023px) {
+  .app-container { flex-direction: column !important; }
+  .app-topbar { padding: 8px 10px !important; flex-wrap: wrap; gap: 6px; }
+  .app-topbar .step-btn { font-size: 10px; padding: 3px 6px; }
+  .app-topbar .logo-text { font-size: 12px; }
+  .app-main { flex-direction: column !important; }
+  .canvas-area-mobile { height: 55vh !important; min-height: 300px; }
+  .sidebar-panel { width: 100% !important; max-height: 45vh; border-left: none !important; border-top: 0.5px solid #21262d; }
+  .upload-box { padding: 24px 16px !important; max-width: 280px !important; }
+  .upload-box .upload-icon { font-size: 28px !important; }
+  .upload-box .upload-title { font-size: 13px !important; }
+  .fmt-tag { font-size: 10px !important; padding: 2px 6px !important; }
+  .confirm-banner { flex-direction: column; gap: 6px; text-align: center; padding: 8px 10px !important; }
+  .confirm-banner span { font-size: 11px; }
+}
+
+@media (max-width: 640px) {
+  .step-btn { font-size: 9px !important; padding: 2px 5px !important; border-radius: 4px; }
+  .canvas-area-mobile { height: 45vh !important; min-height: 250px; }
+  .product-card { padding: 6px 8px !important; }
+  .product-card .pc-name-text { font-size: 11px !important; }
+  .tag { font-size: 9px !important; padding: 1px 4px !important; }
+  .panel-tab { font-size: 11px !important; padding: 6px 2px !important; }
+  .upload-box { padding: 20px 12px !important; max-width: 240px !important; }
+}
+
+/* 移动端侧栏切换按钮 */
+.mobile-sidebar-toggle {
+  display: none;
+  position: absolute; top: 8px; right: 8px; z-index: 100;
+  background: rgba(13,17,23,0.9); border: 0.5px solid #30363d;
+  color: #c9d1d9; border-radius: 6px; padding: 6px 12px;
+  font-size: 12px; cursor: pointer;
+}
+@media (max-width: 1023px) {
+  .mobile-sidebar-toggle { display: block; }
+}
+
+/* 侧栏在移动端的收起/展开 */
+@media (max-width: 1023px) {
+  .sidebar-panel.collapsed { max-height: 40px !important; overflow: hidden; }
+  .sidebar-panel.collapsed > div:not(.panel-tabs-row) { display: none; }
 }
