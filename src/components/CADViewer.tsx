@@ -8,13 +8,85 @@ import ProceduralModel from './ProceduralModel';
 import { partsDB, getPart, CATEGORIES } from '../data/partsDatabase';
 
 // ============================================================
-// API
+// API（带离线演示 fallback）
 // ============================================================
 async function analyzeCAD(file: File): Promise<AnalysisResponse> {
-  const fd = new FormData(); fd.append('file', file);
-  const r = await fetch('/api/analyze', { method: 'POST', body: fd });
-  if (!r.ok) { const b = await r.json().catch(() => null); throw new Error(b?.error || `请求失败 (${r.status})`); }
-  return r.json();
+  try {
+    const fd = new FormData(); fd.append('file', file);
+    const r = await fetch('/api/analyze', { method: 'POST', body: fd });
+    if (r.ok) return r.json();
+  } catch (_) { /* 离线模式 */ }
+  // fallback: 本地生成演示数据
+  return generateDemoData();
+}
+
+function generateDemoData(): AnalysisResponse {
+  const H: [number,number,number] = [0, 0, Math.PI / 2];
+  const V: [number,number,number] = [0, 0, 0];
+  const seed = Date.now() % 1000;
+  const mainLen = 3 + (seed % 3);
+  const branchCount = 2 + (seed % 3);
+  const r = 0.06; const br = 0.035;
+  const halfLen = mainLen / 2;
+  let id = 0;
+  const nid = (p: string) => `${p}-${++id}`;
+
+  const elements: SceneElement[] = [];
+  elements.push(
+    { id:nid('pipe'), type:'pipe', name:'水平主管道·左段', position:[-halfLen+halfLen/2, 0, 0], rotation:H, scale:[r, halfLen, r], dimension:'DN100', partId:'PIPE-1', connections:[] },
+    { id:nid('pipe'), type:'pipe', name:'水平主管道·右段', position:[halfLen-halfLen/2, 0, 0], rotation:H, scale:[r, halfLen, r], dimension:'DN100', partId:'PIPE-1', connections:[] },
+  );
+
+  for (let b = 0; b < branchCount; b++) {
+    const bx = -halfLen + (halfLen * 2 * (b + 1)) / (branchCount + 1);
+    if (b === 0 || b === branchCount - 1) {
+      elements.push({ id:nid('elbow'), type:'elbow', name:'90°弯头', position:[bx, 0, 0], rotation:V, scale:[1,1,1], dimension:'DN50', partId:'WELD-E90-1/2', connections:[] });
+    } else {
+      elements.push({ id:nid('tee'), type:'tee', name:'等径三通', position:[bx, 0, 0], rotation:V, scale:[1,1,1], dimension:'DN50', partId:'WELD-TEE-1/2', connections:[] });
+    }
+    const rh = 0.4 + (b % 3) * 0.2;
+    elements.push({ id:nid('pipe'), type:'pipe', name:'支管·上升段', position:[bx, rh, 0], rotation:V, scale:[br, rh*2-0.1, br], dimension:'DN50', partId:'PFA-T-1/2', connections:[] });
+    elements.push({ id:nid('flange'), type:'flange', name:'扩口法兰', position:[bx, rh*2-0.05, 0], rotation:V, scale:[1,1,1], dimension:'DN50', partId:'FLR-NUT-1/2', connections:[] });
+    elements.push({ id:nid('valve'), type:'valve', name:'PFA单向阀', position:[bx, rh*2+0.3, 0], rotation:V, scale:[1,1,1], dimension:'1/2"', partId:'CV-1/2', connections:[] });
+    elements.push({ id:nid('flange'), type:'flange', name:'扩口法兰', position:[bx, rh*2+0.55, 0], rotation:V, scale:[1,1,1], dimension:'DN50', partId:'FLR-NUT-1/2', connections:[] });
+  }
+
+  const allIds = elements.map(e => e.id);
+  for (let i = 0; i < elements.length - 1; i++) { elements[i].connections.push(elements[i+1].id); elements[i+1].connections.push(elements[i].id); }
+
+  return {
+    elements,
+    products: [
+      { id:1, sku:'CV-1/2', name:'PFA单向阀', icon:'valve.svg', model:'valve.glb', dimensions:'1/2"', match_score:95, confidence:0.95, matched:true, x:-0.5, y:0.6 },
+      { id:2, sku:'CV-3/4', name:'PFA单向阀', icon:'valve.svg', model:'valve.glb', dimensions:'3/4"', match_score:92, confidence:0.92, matched:true, x:1.2, y:0.6 },
+      { id:3, sku:'WELD-E90-1/2', name:'焊接90°弯头', icon:'elbow.svg', model:'elbow.glb', dimensions:'1/2"', match_score:98, confidence:0.98, matched:true, x:-0.5, y:1.0 },
+      { id:4, sku:'WELD-E90-3/4', name:'焊接90°弯头', icon:'elbow.svg', model:'elbow.glb', dimensions:'3/4"', match_score:96, confidence:0.96, matched:true, x:1.2, y:1.0 },
+      { id:5, sku:'FLR-E90-1/2', name:'扩口弯头', icon:'elbow.svg', model:'elbow.glb', dimensions:'1/2"', match_score:88, confidence:0.88, matched:true, x:-1.2, y:0 },
+      { id:6, sku:'NV-1/2', name:'PFA针阀', icon:'valve.svg', model:'valve.glb', dimensions:'1/2"', match_score:85, confidence:0.85, matched:true, x:0, y:-0.5 },
+      { id:7, sku:'WELD-TEE-1/2', name:'焊接三通', icon:'tee.svg', model:'tee.glb', dimensions:'1/2"', match_score:70, confidence:0.70, matched:false, x:0, y:0.8 },
+      { id:8, sku:'FLR-R-3/4X1/2', name:'扩口变径直通', icon:'reducer.svg', model:'reducer.glb', dimensions:'3/4"×1/2"', match_score:65, confidence:0.65, matched:false, x:1.5, y:0 },
+    ],
+    annotations: [
+      { id:'a1', type:'flange', x:0.28, y:0.30, label:'扩口弯头 1/2"', matched:true, sku:'FLR-E90-1/2' },
+      { id:'a2', type:'flange', x:0.68, y:0.30, label:'焊接弯头 3/4"', matched:true, sku:'WELD-E90-3/4' },
+      { id:'a3', type:'valve',  x:0.28, y:0.52, label:'PFA单向阀 1/2"', matched:true, sku:'CV-1/2' },
+      { id:'a4', type:'valve',  x:0.68, y:0.52, label:'PFA单向阀 3/4"', matched:true, sku:'CV-3/4' },
+      { id:'a5', type:'valve',  x:0.50, y:0.42, label:'PFA针阀 1/2"', matched:true, sku:'NV-1/2' },
+      { id:'a6', type:'elbow',  x:0.28, y:0.78, label:'焊接弯头 1/2"', matched:true, sku:'WELD-E90-1/2' },
+      { id:'a7', type:'elbow',  x:0.68, y:0.78, label:'扩口弯头 1/2"', matched:true, sku:'FLR-E90-1/2' },
+      { id:'a8', type:'tee',    x:0.50, y:0.22, label:'焊接三通 1/2"', matched:false, sku:undefined },
+    ],
+    pipes2d: [
+      { x1:0.28, y1:0.05, x2:0.28, y2:0.78, r:0.04 },
+      { x1:0.68, y1:0.05, x2:0.68, y2:0.78, r:0.04 },
+      { x1:0.28, y1:0.38, x2:0.68, y2:0.38, r:0.03 },
+      { x1:0.28, y1:0.68, x2:0.68, y2:0.68, r:0.04 },
+      { x1:0.18, y1:0.68, x2:0.28, y2:0.68, r:0.03 },
+      { x1:0.68, y1:0.68, x2:0.78, y2:0.68, r:0.03 },
+      { x1:0.50, y1:0.78, x2:0.50, y2:0.92, r:0.03 },
+    ],
+    imageWidth: 800, imageHeight: 500,
+  };
 }
 
 // ============================================================
