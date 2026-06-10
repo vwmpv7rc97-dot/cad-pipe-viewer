@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --green: #1D9E75;
+  --green-light: #5DCAA5;
+  --green-bg: rgba(29,158,117,0.12);
+  --canvas-bg: #0F1923;
+  --amber: #EF9F27;
+  --amber-light: #FAC775;
+}
+
+html, body, #root {
+  margin: 0; padding: 0;
+  width: 100%; height: 100vh; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+/* 文件上传按钮 */
+input[type="file"] { cursor: pointer; }
+input[type="file"]::file-selector-button {
+  background: var(--green); color: #fff; border: none;
+  padding: 6px 16px; border-radius: 4px; cursor: pointer;
+  margin-right: 8px; transition: background 0.15s;
+}
+input[type="file"]::file-selector-button:hover { background: #0F6E56; }
+
+/* 滚动条 */
+.overflow-y-auto::-webkit-scrollbar { width: 4px; }
+.overflow-y-auto::-webkit-scrollbar-track { background: transparent; }
+.overflow-y-auto::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+/* 步骤按钮 */
+.step-btn {
+  font-size: 12px; padding: 4px 10px; border-radius: 6px;
+  border: 0.5px solid #30363d; background: transparent;
+  color: #8b949e; cursor: pointer; transition: all 0.15s;
+}
+.step-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+.step-btn:hover:not(.active) { background: #21262d; }
+
+/* 上传区 */
+.upload-box {
+  border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
+  padding: 40px 32px; text-align: center; cursor: pointer;
+  transition: all 0.2s; max-width: 360px; width: 100%;
+}
+.upload-box:hover { border-color: var(--green); background: rgba(29,158,117,0.04); }
+
+/* 分析步骤动画 */
+.analyze-step { font-size: 12px; color: rgba(255,255,255,0.25); display: flex; align-items: center; gap: 8px; transition: color 0.3s; }
+.analyze-step.done { color: var(--green); }
+.analyze-step.active { color: rgba(255,255,255,0.7); }
+
+/* 产品卡片 */
+.product-card {
+  border: 0.5px solid #21262d; border-radius: 8px; padding: 10px;
+  margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+  background: #0d1117;
+}
+.product-card:hover { border-color: var(--green); }
+.product-card.selected { border-color: var(--green); background: rgba(29,158,117,0.06); }
+.product-card.unmatched { border-color: #21262d; opacity: 0.65; }
+
+.tag {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  background: #21262d; color: #8b949e;
+}
+.tag.green { background: rgba(29,158,117,0.15); color: var(--green-light); }
+.tag.amber { background: rgba(239,159,39,0.15); color: var(--amber-light); }
+
+/* 确认横幅 */
+.confirm-banner {
+  background: rgba(29,158,117,0.1); border-bottom: 1px solid rgba(29,158,117,0.25);
+  padding: 8px 16px; display: flex; align-items: center; justify-content: space-between;
+}
+.confirm-btn {
+  font-size: 12px; padding: 5px 14px; border-radius: 6px;
+  background: var(--green); color: #fff; border: none; cursor: pointer;
+}
+.confirm-btn:hover { background: #0F6E56; }
+
+/* Tab */
+.panel-tab {
+  flex: 1; font-size: 12px; padding: 8px 4px; text-align: center;
+  cursor: pointer; color: #8b949e; border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.panel-tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* 节点 tooltip */
+.node-tooltip {
+  position: absolute; background: rgba(13,17,23,0.96);
+  border: 0.5px solid rgba(29,158,117,0.35); border-radius: 8px;
+  padding: 8px 12px; pointer-events: none; font-size: 11px;
+  color: #c9d1d9; min-width: 140px; transition: opacity 0.15s;
+  z-index: 50;
+}
